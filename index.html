@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG: Retrieval-Augmented Generation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .acronym {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .letter {
+            background: white;
+            color: #4b6cb7;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .meaning {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        h2 {
+            color: #4b6cb7;
+            margin: 25px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        h3 {
+            color: #182848;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            font-size: 1.05rem;
+        }
+        
+        .rag-process {
+            display: flex;
+            flex-direction: column;
+            margin: 30px 0;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background: #4b6cb7;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .diagram {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .box {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+        
+        .arrow {
+            font-size: 2rem;
+            color: #4b6cb7;
+            margin: 0 10px;
+        }
+        
+        .comparison {
+            display: flex;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .comparison-item {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .comparison-header {
+            text-align: center;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .advantage {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .advantage i {
+            font-size: 2rem;
+            color: #4b6cb7;
+            margin-bottom: 15px;
+        }
+        
+        .applications {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .application {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .application i {
+            font-size: 2.5rem;
+            color: #4b6cb7;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: #182848;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .step {
+                flex-direction: column;
+            }
+            
+            .step-number {
+                margin-bottom: 15px;
+            }
+            
+            .arrow {
+                display: block;
+                text-align: center;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RAG: Retrieval-Augmented Generation</h1>
+            <p class="subtitle">A comprehensive explanation of the AI architecture that combines information retrieval with generative models</p>
+        </header>
+        
+        <div class="content">
+            <div class="acronym">
+                <div>
+                    <div class="letter">R</div>
+                    <div class="meaning">Retrieval</div>
+                </div>
+                <div>
+                    <div class="letter">A</div>
+                    <div class="meaning">Augmented</div>
+                </div>
+                <div>
+                    <div class="letter">G</div>
+                    <div class="meaning">Generation</div>
+                </div>
+            </div>
+            
+            <h2>What is RAG?</h2>
+            <p><strong>Retrieval-Augmented Generation (RAG)</strong> is an AI framework that enhances the capabilities of large language models (LLMs) by incorporating external knowledge sources. Instead of relying solely on the information the model was trained on, RAG allows the model to retrieve relevant information from external databases or documents and use that information to generate more accurate and contextually appropriate responses.</p>
+            
+            <h2>How RAG Works</h2>
+            <p>The RAG process combines two main components: a retrieval system and a generative model. Here's how it works step by step:</p>
+            
+            <div class="rag-process">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Query Input</h3>
+                        <p>A user submits a question or prompt to the system.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Information Retrieval</h3>
+                        <p>The system searches through knowledge sources (documents, databases, etc.) to find information relevant to the query.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Context Augmentation</h3>
+                        <p>The retrieved information is combined with the original query to create an enriched context for the generative model.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Response Generation</h3>
+                        <p>The generative model uses both the original query and the retrieved information to produce a comprehensive and accurate response.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="diagram">
+                <div class="box">User Query</div>
+                <div class="arrow">→</div>
+                <div class="box">Retrieval System</div>
+                <div class="arrow">→</div>
+                <div class="box">Knowledge Source</div>
+                <br>
+                <div class="box">Retrieved Information</div>
+                <div class="arrow">→</div>
+                <div class="box">Generative Model</div>
+                <div class="arrow">→</div>
+                <div class="box">Final Response</div>
+            </div>
+            
+            <h2>RAG vs. Traditional LLMs</h2>
+            <div class="comparison">
+                <div class="comparison-item">
+                    <div class="comparison-header">
+                        <h3>Traditional LLMs</h3>
+                    </div>
+                    <ul>
+                        <li>Rely solely on pre-trained knowledge</li>
+                        <li>May generate outdated information</li>
+                        <li>Can hallucinate or make up facts</li>
+                        <li>Limited to training data scope</li>
+                        <li>No access to current or proprietary information</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-item">
+                    <div class="comparison-header">
+                        <h3>RAG Systems</h3>
+                    </div>
+                    <ul>
+                        <li>Combine pre-trained knowledge with retrieved information</li>
+                        <li>Can provide up-to-date information</li>
+                        <li>More factual accuracy with source attribution</li>
+                        <li>Can access specialized or proprietary data</li>
+                        <li>Reduces hallucination by grounding in real data</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h2>Advantages of RAG</h2>
+            <div class="advantages">
+                <div class="advantage">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Improved Accuracy</h3>
+                    <p>By retrieving factual information from external sources, RAG reduces the likelihood of generating incorrect or made-up information.</p>
+                </div>
+                
+                <div class="advantage">
+                    <i class="fas fa-database"></i>
+                    <h3>Access to Current Information</h3>
+                    <p>RAG systems can incorporate the most recent information, overcoming the limitations of static training data.</p>
+                </div>
+                
+                <div class="advantage">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Source Attribution</h3>
+                    <p>RAG can provide citations for the information it uses, increasing transparency and trustworthiness.</p>
+                </div>
+                
+                <div class="advantage">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Customization</h3>
+                    <p>Organizations can use their own proprietary data with RAG systems without retraining the entire model.</p>
+                </div>
+            </div>
+            
+            <h2>Applications of RAG</h2>
+            <div class="applications">
+                <div class="application">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>Question Answering</h3>
+                    <p>Enhanced QA systems that provide accurate, sourced answers.</p>
+                </div>
+                
+                <div class="application">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Business Intelligence</h3>
+                    <p>Analyzing company documents and reports to generate insights.</p>
+                </div>
+                
+                <div class="application">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>Education</h3>
+                    <p>Tutoring systems that reference specific educational materials.</p>
+                </div>
+                
+                <div class="application">
+                    <i class="fas fa-stethoscope"></i>
+                    <h3>Healthcare</h3>
+                    <p>Medical assistants that reference the latest research and guidelines.</p>
+                </div>
+                
+                <div class="application">
+                    <i class="fas fa-balance-scale"></i>
+                    <h3>Legal Research</h3>
+                    <p>Analyzing case law and legal documents to support arguments.</p>
+                </div>
+                
+                <div class="application">
+                    <i class="fas fa-headset"></i>
+                    <h3>Customer Support</h3>
+                    <p>Chatbots that reference product documentation and FAQs.</p>
+                </div>
+            </div>
+            
+            <h2>Implementation Considerations</h2>
+            <p>Implementing a RAG system involves several key considerations:</p>
+            <ul>
+                <li><strong>Knowledge Base Quality:</strong> The effectiveness of RAG depends heavily on the quality and relevance of the knowledge sources.</li>
+                <li><strong>Retrieval Mechanism:</strong> Choosing the right retrieval method (dense retrieval, sparse retrieval, etc.) is crucial for performance.</li>
+                <li><strong>Integration:</strong> Seamlessly integrating retrieved information with the generative process requires careful prompt engineering.</li>
+                <li><strong>Computational Resources:</strong> RAG systems may require more resources than standard LLMs due to the retrieval component.</li>
+                <li><strong>Evaluation:</strong> Developing appropriate metrics to evaluate the quality of RAG responses is essential.</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>Retrieval-Augmented Generation (RAG) represents a significant advancement in AI, combining the best of information retrieval and generative models.</p>
+            <p>Created for educational purposes</p>
+        </footer>
+    </div>
+</body>
+</html>
