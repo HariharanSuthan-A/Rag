@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retrival Augumented Generation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-pdf"></i>Retrival Augumented Generation</h1>
+            <p class="subtitle">Ask questions from the document</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="question-input">Your Question:</label>
+                    <textarea id="question-input" placeholder="What would you like to know about the document?"></textarea>
+                    <button id="ask-btn" class="btn">Ask Question</button>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Processing your question...</p>
+                </div>
+                
+                <div id="query-status" class="status"></div>
+            </div>
+            
+            <div class="response-section">
+                <h2 class="section-title"><i class="fas fa-comments"></i> Response</h2>
+                
+                <div id="response-content">
+                    <div class="response-placeholder">
+                        <i class="fas fa-robot"></i>
+                        <p>I'm ready to answer questions about the document</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Powered by AI • PDF already preloaded</p>
+
+
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const askBtn = document.getElementById('ask-btn');
+            const questionInput = document.getElementById('question-input');
+            const queryStatus = document.getElementById('query-status');
+            const responseContent = document.getElementById('response-content');
+            const loading = document.getElementById('loading');
+            
+            askBtn.addEventListener('click', function() {
+                const question = questionInput.value.trim();
+                
+                if (!question) {
+                    queryStatus.textContent = 'Please enter a question';
+                    queryStatus.className = 'status error';
+                    return;
+                }
+                
+                loading.style.display = 'block';
+                queryStatus.textContent = 'Processing your question...';
+                queryStatus.className = 'status info';
+                
+                const formData = new FormData();
+                formData.append('question', question);
+                
+                fetch('/ask', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    
+                    if (data.success) {
+                        queryStatus.textContent = 'Response received';
+                        queryStatus.className = 'status success';
+                        
+                        responseContent.innerHTML = `
+                            <div class="question">
+                                <strong>Q:</strong> ${data.question}
+                            </div>
+                            <div class="answer">
+                                <strong>A:</strong> ${data.answer}
+                            </div>
+                        `;
+                    } else {
+                        queryStatus.textContent = data.message;
+                        queryStatus.className = 'status error';
+                    }
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    queryStatus.textContent = 'Error: ' + error.message;
+                    queryStatus.className = 'status error';
+                });
+            });
+            
+            // Allow submitting with Enter key
+            questionInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    askBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
